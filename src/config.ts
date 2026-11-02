@@ -2,17 +2,20 @@ import { type SomeCompanionConfigField } from '@companion-module/base'
 
 export type ModuleConfig = {
 	clientId: string
-	clientSecret: string
 	projectId: string
-	refreshToken: string
 	pollIntervalSec: number
+}
+
+export type ModuleSecrets = {
+	clientSecret: string
+	refreshToken: string
 }
 
 export function GetConfigFields(): SomeCompanionConfigField[] {
 	return [
 		{
 			type: 'static-text',
-			id: 'info',
+			id: 'instructions',
 			label: 'Information',
 			value: `To use this module:<br/> 
 				1. Create a Google Cloud project and enable the "Smart Device Management API". <a href="https://console.cloud.google.com/" target="_blank">https://console.cloud.google.com/</a> <br/>
@@ -29,7 +32,7 @@ export function GetConfigFields(): SomeCompanionConfigField[] {
 			width: 8,
 		},
 		{
-			type: 'textinput',
+			type: 'secret-text',
 			id: 'clientSecret',
 			label: 'Client Secret',
 			width: 8,
@@ -44,14 +47,14 @@ export function GetConfigFields(): SomeCompanionConfigField[] {
 		},
 		{
 			type: 'static-text',
-			id: 'info',
+			id: 'instructions-refreshtoken',
 			label: 'Google Refresh token',
 			value:
 				'Follow these google instructions to obtain the refresh token <a href="https://developers.google.com/nest/device-access/authorize" target="_blank">Google OAuth flow</a>',
 			width: 8,
 		},
 		{
-			type: 'textinput',
+			type: 'secret-text',
 			id: 'refreshToken',
 			label: 'OAuth Refresh Token',
 			default: '',
@@ -63,7 +66,7 @@ export function GetConfigFields(): SomeCompanionConfigField[] {
 			id: 'pollIntervalSec',
 			label: 'Poll Interval (seconds)',
 			default: 30,
-			min: 12,
+			min: 15,
 			max: 300,
 			width: 4,
 			tooltip:
