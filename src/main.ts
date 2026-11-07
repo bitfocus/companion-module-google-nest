@@ -6,7 +6,7 @@ import { UpdateActions, type ActionsSchema } from './actions.js'
 import { UpdateFeedbacks, type FeedbacksSchema } from './feedbacks.js'
 import { UpdatePresets } from './presets.js'
 import { SdmClient } from './sdm-client.js'
-import { getDisplayName } from './helpers.js'
+import { describeError, getDisplayName } from './helpers.js'
 import type { SdmDevice, SdmStructure } from './types.js'
 
 export type ModuleSchema = {
@@ -26,8 +26,10 @@ export default class ModuleInstance extends InstanceBase<ModuleSchema> {
 	structures = new Map<string, SdmStructure>()
 
 	public client: SdmClient | null = null
+	public variableSignature: string | null = null
 	private pollTimer: NodeJS.Timeout | null = null
 	private polling = false
+	private authFailed = false
 	/** Fingerprint of everything the action/feedback dropdowns are built from. null = never built from a successful poll */
 	private deviceSignature: string | null = null
 	private structuresFetchedAt = 0
@@ -97,6 +99,7 @@ export default class ModuleInstance extends InstanceBase<ModuleSchema> {
 	/** (Re)create the client and start polling. Safe to call repeatedly. */
 	private async restart(): Promise<void> {
 		this.stopPolling()
+		this.authFailed = false
 		this.structures.clear()
 		this.structuresFetchedAt = 0
 
@@ -110,7 +113,9 @@ export default class ModuleInstance extends InstanceBase<ModuleSchema> {
 		this.updateStatus(InstanceStatus.Connecting)
 
 		await this.getGoogleNestDevices()
-		this.startPolling(this.config.pollIntervalSec ?? 30)
+		if (this.authFailed) return
+		const sec = Math.min(300, Math.max(15, Number(this.config.pollIntervalSec) || 30))
+		this.startPolling(sec)
 	}
 
 	private startPolling(intervalSec: number): void {
@@ -143,9 +148,9 @@ export default class ModuleInstance extends InstanceBase<ModuleSchema> {
 	}
 
 	/**
-	 * Fingerprint of the things the action/feedback choices depend on.
-	 * The thermostat actions currently filter on mode and setpoint presence,
-	 * so those are included until the actions are reworked.
+	 * Fingerprint of the things the dropdown choices depend on: device id, type,
+	 * home name and display name. When it changes, the action, feedback and
+	 * preset definitions are rebuilt.
 	 */
 	private buildDeviceSignature(): string {
 		return Array.from(this.devices.entries())
@@ -155,7 +160,7 @@ export default class ModuleInstance extends InstanceBase<ModuleSchema> {
 	}
 
 	async getGoogleNestDevices(): Promise<void> {
-		if (!this.client || this.polling) return
+		if (!this.client || this.polling || this.authFailed) return
 		this.polling = true
 
 		try {
@@ -202,19 +207,22 @@ export default class ModuleInstance extends InstanceBase<ModuleSchema> {
 			}
 
 			this.updateVariableDefinitions()
-			this.checkFeedbacks('device_online', 'thermostat_mode', 'hvac_active')
+			this.checkFeedbacks('device_online', 'thermostat_mode', 'hvac_active', 'eco_active')
 			this.updateStatus(InstanceStatus.Ok)
 		} catch (err) {
-			const message = err instanceof Error ? err.message : String(err)
+			const { message, isNetworkError } = describeError(err)
 			this.log('error', `Poll failed: ${message}`)
 
 			if (message.includes('invalid_grant')) {
 				// A dead refresh token won't recover on its own, so stop hammering Google until the user fixes it
+				this.authFailed = true
 				this.stopPolling()
 				this.updateStatus(
 					InstanceStatus.AuthenticationFailure,
 					'Google rejected the refresh token. Generate a new one and save the connection settings',
 				)
+			} else if (isNetworkError) {
+				this.updateStatus(InstanceStatus.ConnectionFailure, `Can't reach Google: ${message}`)
 			} else {
 				this.updateStatus(InstanceStatus.UnknownError, message)
 			}
