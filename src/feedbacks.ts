@@ -1,6 +1,6 @@
 import { getDisplayName } from './helpers.js'
 import type ModuleInstance from './main.js'
-import { TRAIT, type ThermostatMode } from './types.js'
+import { TRAIT, type ModeFeedbackChoice, type ThermostatMode } from './types.js'
 
 export type FeedbacksSchema = {
 	device_online: {
@@ -13,7 +13,7 @@ export type FeedbacksSchema = {
 		type: 'boolean'
 		options: {
 			deviceId: string
-			mode: ThermostatMode
+			mode: ModeFeedbackChoice
 		}
 	}
 	hvac_active: {
@@ -85,6 +85,7 @@ export function UpdateFeedbacks(self: ModuleInstance): void {
 					id: 'mode',
 					label: 'Mode',
 					default: 'HEAT' as ThermostatMode,
+					disableAutoExpression: true,
 					choices: [
 						{ id: 'HEAT', label: 'Heat' },
 						{ id: 'COOL', label: 'Cool' },
@@ -129,8 +130,8 @@ export function UpdateFeedbacks(self: ModuleInstance): void {
 		},
 		eco_active: {
 			type: 'boolean',
-			name: 'Thermostat: Eco active',
-			description: 'Active when the thermostat is in eco mode',
+			name: 'Thermostat: ECO active',
+			description: 'Active when the thermostat is in ECO mode',
 			defaultStyle: {
 				bgcolor: 0x00ff00,
 				color: 0x000000,

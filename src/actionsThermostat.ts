@@ -318,7 +318,7 @@ export function ThermostatActions(self: ModuleInstance): CompanionActionDefiniti
 		},
 
 		set_mode: {
-			name: 'Set mode',
+			name: 'Set Mode',
 			description: 'Set the thermostat mode: Heat, Cool, Heat/Cool or Off.',
 			options: [
 				deviceOption(),

@@ -37,7 +37,8 @@ export type SdmTraits = {
 	[key: string]: Record<string, unknown> | undefined // fallback for any other traits
 }
 
-export type ThermostatMode = 'HEAT' | 'COOL' | 'HEATCOOL' | 'OFF' | 'MANUAL_ECO'
+export type ThermostatMode = 'HEAT' | 'COOL' | 'HEATCOOL' | 'OFF'
+export type ModeFeedbackChoice = ThermostatMode | 'MANUAL_ECO'
 export type HvacStatus = 'HEATING' | 'COOLING' | 'IDLE'
 
 export const TRAIT = {
