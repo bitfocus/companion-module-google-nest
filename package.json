@@ -1,14 +1,13 @@
 {
 	"name": "google-nest",
-	"version": "1.0.6",
+	"version": "1.0.7",
 	"main": "dist/main.js",
 	"type": "module",
 	"scripts": {
 		"postinstall": "husky",
 		"format": "prettier -w .",
-		"package": "run build:og && companion-module-build",
-		"build": "run build:main",
-		"build:og": "rimraf dist && run build:main",
+		"package": "run build && companion-module-build",
+		"build": "rimraf dist && run build:main",
 		"build:main": "tsc -p tsconfig.build.json",
 		"dev": "tsc -p tsconfig.build.json --watch",
 		"lint:raw": "eslint",
