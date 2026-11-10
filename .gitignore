@@ -9,12 +9,16 @@ node_modules/
 !.yarn/releases
 !.yarn/sdks
 !.yarn/versions
+/.yarn
 
 # Build artifacts
 dist/
 build/
 pkg/
 *.tgz
+/pkg
+/*.tgz
+/dist
 *.tsbuildinfo
 
 # Logs
@@ -43,6 +47,7 @@ temp/
 
 # IDE/editor
 .vscode/
+/.vscode
 
 # OS files
 .DS_Store
